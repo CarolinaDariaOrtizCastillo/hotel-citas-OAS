@@ -1,0 +1,13 @@
+﻿# ==============================================================
+#  00-namespace.yaml
+#  Paso 1: Aislamiento del Entorno
+#  Crea un espacio de nombres dedicado para todos los recursos
+#  de esta practica, evitando colisiones con otros proyectos.
+# ==============================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: practica-s11
+  labels:
+    proyecto: hotel-citas
+    practica: s11

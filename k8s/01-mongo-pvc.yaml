@@ -1,0 +1,21 @@
+﻿# ==============================================================
+#  01-mongo-pvc.yaml
+#  Paso 2: Almacenamiento Persistente
+#  PersistentVolumeClaim que solicita 1Gi de disco al cluster.
+#  Garantiza que los datos de MongoDB sobrevivan reinicios
+#  o reprogramacion de Pods (durabilidad de datos).
+# ==============================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-pvc
+  namespace: practica-s11
+  labels:
+    app: mongodb
+    proyecto: hotel-citas
+spec:
+  accessModes:
+    - ReadWriteOnce        # Un solo nodo puede montar el volumen
+  resources:
+    requests:
+      storage: 1Gi         # Minimo requerido por la practica

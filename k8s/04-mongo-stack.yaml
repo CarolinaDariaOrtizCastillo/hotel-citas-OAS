@@ -1,0 +1,85 @@
+﻿# ==============================================================
+#  04-mongo-stack.yaml
+#  Paso 5: Stack de Persistencia MongoDB
+#  Contiene:
+#    - Deployment: corre el contenedor de MongoDB,
+#      monta el PVC en /data/db e inyecta credenciales
+#      desde el Secret.
+#    - Service (ClusterIP): expone MongoDB SOLO dentro
+#      del cluster en el puerto 27017. El backend lo
+#      alcanza via DNS interno de Kubernetes (CoreDNS).
+# ==============================================================
+
+# --- Deployment de MongoDB ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb-deployment
+  namespace: practica-s11
+  labels:
+    app: mongodb
+    proyecto: hotel-citas
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+        - name: mongodb
+          image: mongo:7.0
+          ports:
+            - containerPort: 27017
+
+          # Inyeccion de credenciales desde el Secret (Paso 4)
+          envFrom:
+            - secretRef:
+                name: db-secret
+
+          # Montaje del volumen persistente en la ruta estandar de MongoDB
+          volumeMounts:
+            - name: mongo-storage
+              mountPath: /data/db
+
+          # Recursos recomendados para el contenedor
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
+      # Referencia al PersistentVolumeClaim creado en el Paso 2
+      volumes:
+        - name: mongo-storage
+          persistentVolumeClaim:
+            claimName: mongo-pvc
+
+---
+
+# --- Service ClusterIP de MongoDB ---
+# Expone MongoDB solo dentro del cluster.
+# El backend lo llama por su nombre DNS:
+#   mongo-service.practica-s11.svc.cluster.local:27017
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-service
+  namespace: practica-s11
+  labels:
+    app: mongodb
+    proyecto: hotel-citas
+spec:
+  type: ClusterIP          # Solo accesible dentro del cluster
+  selector:
+    app: mongodb
+  ports:
+    - name: mongodb
+      port: 27017
+      targetPort: 27017
+      protocol: TCP

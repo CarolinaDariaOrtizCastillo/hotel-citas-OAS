@@ -1,0 +1,76 @@
+# ==============================================================
+#  05-backend-stack.yaml
+#  Deployment + NodePort Service del Backend Spring WebFlux
+# ==============================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  namespace: practica-s11
+  labels:
+    app: hotel-citas-backend
+    proyecto: hotel-citas
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hotel-citas-backend
+  template:
+    metadata:
+      labels:
+        app: hotel-citas-backend
+    spec:
+      containers:
+        - name: hotel-citas-backend
+          image: hotel-citas:1.0.0
+          imagePullPolicy: Never      # Usar imagen local de Minikube, NO bajar de internet
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: db-secret
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: practica-s11
+  labels:
+    app: hotel-citas-backend
+    proyecto: hotel-citas
+spec:
+  type: NodePort
+  selector:
+    app: hotel-citas-backend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      nodePort: 30080
+      protocol: TCP

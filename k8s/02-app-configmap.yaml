@@ -1,0 +1,28 @@
+﻿# ==============================================================
+#  02-app-configmap.yaml
+#  Paso 3: Configuracion No Sensible (ConfigMap)
+#  Externaliza la configuracion publica del backend.
+#  Estos valores son inyectados como variables de entorno
+#  en el Pod de Spring WebFlux mediante envFrom.
+# ==============================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: practica-s11
+  labels:
+    app: hotel-citas-backend
+    proyecto: hotel-citas
+data:
+  # Nombre DNS interno de MongoDB resuelto por CoreDNS de Kubernetes
+  # Formato: <nombre-del-service>.<namespace>.svc.cluster.local
+  DB_HOST: "mongo-service.practica-s11.svc.cluster.local"
+
+  # Puerto estandar de MongoDB
+  DB_PORT: "27017"
+
+  # Nombre de la base de datos de produccion
+  DB_NAME: "hoteldb"
+
+  # Puerto donde escucha el backend Spring WebFlux
+  APP_PORT: "8080"
